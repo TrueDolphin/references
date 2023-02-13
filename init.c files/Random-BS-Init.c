@@ -52,7 +52,7 @@ class CustomMission: MissionServer {
   }
 
   override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity) {
-    //temp fix for trader mins not counting as 0 on death/join
+    //temp fix for player mins not counting as 0 on death/join
     if (player.Expansion_GetReputation() < 0) player.Expansion_SetReputation(0);
     //old friendly civilian ai mod   
     eAIGroup playerGroup = player.GetGroup();
