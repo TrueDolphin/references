@@ -123,7 +123,7 @@ class CustomMission: MissionServer {
     foreach(E_players Group: m_PlayerRepSettings.Group) {
       if (player.GetIdentity().GetPlainId() == Group.UID) {
         if (!player.Expansion_GetReputation()) player.Expansion_SetReputation(0);
-          player.Expansion_AddReputation(Group.Reputation + 1)
+          player.Expansion_AddReputation(Group.Reputation + 1);
           Print("Rep added to:" + player.GetIdentity().GetName() + " - amount :" + Group.Reputation.ToString());
           /*
           can play around with:
