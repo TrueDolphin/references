@@ -1,14 +1,14 @@
 class VectorMath {
+    
+    //this whole file was a dream.
 
+    //:0
     float GetAngleBetweenVectors(vector v1, vector v2) {
         float dotProduct = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-        float lengthProduct = sqrt((v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]) * (v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2]));
-        float angle = acos(dotProduct / lengthProduct);
+        float lengthProduct = Math.Sqrt((v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]) * (v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2]));
+        float angle = Math.Acos(dotProduct / lengthProduct);
         return angle;
     }
-
-
-
 
     //generated pathing
     TVectorArray GenerateWaypoints(vector startPoint, vector endPoint, float stepSize) {
@@ -58,18 +58,19 @@ class VectorMath {
 
     // insane generation of pathing
     TVectorArray GenerateRandomPath(vector start, vector end, float minDistance, float maxDistance, int numWaypoints) {
-        TVectorArray path = new TVectorArray[numWaypoints + 2];
+        TVectorArray path;
+        path.Resize(numWaypoints + 2);
         path[0] = start;
         path[numWaypoints + 1] = end;
         for (int i = 1; i <= numWaypoints; i++) {
-            vector prev = path[i-1];
-            vector next = path[numWaypoints+1];
+            vector prev = path[i - 1];
+            vector next = path[numWaypoints + 1];
             if (i > 1) {
-                prev = path[i-1] + "0 0 2";
+                prev = path[i - 1] + "0 0 2";
             }
             if (i < numWaypoints) {
                 float distance = Math.RandomFloatInclusive(minDistance, maxDistance);
-                vector offset = ExpansionMath.GetRandomPointInRing("0 0 0", 0, distance);
+                vector offset = ExpansionMath.GetRandomPointInRing(prev, 0, distance);
                 next = next + offset;
             }
             path[i] = GetSurfacePathATL(prev[0], prev[2], next[0], next[2]);
@@ -77,7 +78,14 @@ class VectorMath {
         return path;
     }
 
+    vector GetSurfacePathATL(float x1, float z1, float x2, float z2) {
+        TVectorArray path = new TVectorArray;
 
+        vector start_pos = ExpansionStatic.GetSurfacePosition(x1, z1);
+        vector end_pos = ExpansionStatic.GetSurfacePosition(x2, z2);
+        path = GenerateWaypoints(start_pos, end_pos, 1);
 
+        return path[1];
+    }
 
 }
