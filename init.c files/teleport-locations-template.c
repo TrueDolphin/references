@@ -46,6 +46,7 @@ void InitTeleportSettings() {
 }
 class TeleportData {
     int Version = 1;
+    ref array < ref TeleportPoint > Point;
     void TeleportData() {
       Point = new array < ref TeleportPoint > ;
     }

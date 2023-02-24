@@ -10,6 +10,12 @@ class VectorMath {
         return angle;
     }
 
+    /*
+    Everything under this is pointless because the following exists:
+    proto native bool FindPath(vector from, vector to, PGFilter pgFilter, out TVectorArray waypoints);
+    */
+
+
     //generated pathing
     TVectorArray GenerateWaypoints(vector startPoint, vector endPoint, float stepSize) {
         TVectorArray waypoints;
