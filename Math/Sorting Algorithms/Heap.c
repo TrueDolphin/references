@@ -1,11 +1,10 @@
 class HeapSort{
     void HeapSort(array<int> arr) {
-        int n = arr.Count();
-        for (int i = n / 2 - 1; i >= 0; i--) {
-            Heapify(arr, n, i);
+        for (int i = arr.Count() / 2 - 1; i >= 0; i--) {
+            Heapify(arr, arr.Count(), i);
         }
 
-        for (int j = n - 1; j >= 0; j--) {
+        for (int j = arr.Count() - 1; j >= 0; j--) {
             int temp = arr[0];
             arr[0] = arr[j];
             arr[j] = temp;

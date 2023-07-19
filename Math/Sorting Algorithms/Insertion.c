@@ -1,8 +1,7 @@
 class InsertionSort{
 
     void InsertionSortByDistance(TVectorArray arr, vector origin) {
-        int n = arr.Count();
-        for (int i = 1; i < n; i++) {
+        for (int i = 1; i < arr.Count(); i++) {
             vector key = arr[i];
             float keyDist = vector.Distance(key, origin);
             int j = i - 1;
@@ -14,10 +13,8 @@ class InsertionSort{
         }
     }
 
-
     void InsertionSort(array<int> arr) {
-        int n = arr.Count();
-        for (int i = 1; i < n; i++) {
+        for (int i = 1; i < arr.Count(); i++) {
             int key = arr[i];
             int j = i - 1;
 

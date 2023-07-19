@@ -2,9 +2,8 @@ class BubbleSort{
 
     //vector by distance
     void BubbleSortByDistance(TVectorArray arr, vector origin) {
-        int n = arr.Count();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
+        for (int i = 0; i < arr.Count() - 1; i++) {
+            for (int j = 0; j < arr.Count() - i - 1; j++) {
                 if (vector.Distance(arr[j], origin) > vector.Distance(arr[j + 1], origin)) {
                     Swap(arr, j, j + 1);
                 }
@@ -17,12 +16,10 @@ class BubbleSort{
         arr[j] = temp;
     }
 
-
     //int by size
     void BubbleSort(array<int> arr) {
-        int n = arr.Count();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
+        for (int i = 0; i < arr.Count() - 1; i++) {
+            for (int j = 0; j < arr.Count() - i - 1; j++) {
                 if (arr[j] > arr[j + 1]) {
                     int temp = arr[j];
                     arr[j] = arr[j + 1];

@@ -1,7 +1,11 @@
-class BogoSort {
+/*
+    with a feline twist.
+    usecase below
+    dab made the usecase.
+*/
 
-    //with a feline twist.
-    //usecase below
+
+class BogoSort {
 
     void BogoSort()
     {
