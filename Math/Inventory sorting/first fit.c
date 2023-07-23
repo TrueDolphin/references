@@ -22,10 +22,10 @@ class Rectangle
     private int containerHeight;
     private ref array<Rectangle> rectangles;
 
-    void RectanglePacker(int containerWidth, int containerHeight)
+    void RectanglePacker(int Width, int Height)
     {
-        this.containerWidth = containerWidth;
-        this.containerHeight = containerHeight;
+        containerWidth = Width;
+        containerHeight = Height;
         rectangles = new array<Rectangle>();
     }
 
