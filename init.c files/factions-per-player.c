@@ -166,7 +166,7 @@ class E_players
 
 class PlayerAISettings
 {
-	int Enabled = 1;				// Time in seconds before the dead group will respawn. If set to -1, they won't respawn
+	int Enabled = 1;
 	ref array< ref E_players > Group;
 	void PlayerAISettings()
 	{
