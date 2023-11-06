@@ -148,9 +148,6 @@ void DefaultPlayerAISettings(out PlayerAISettings Data)
         }
 		Print("No Config for :" + player.GetIdentity().GetName() + " found.");
 	}
-
-
-
 }
 class E_players
 {
