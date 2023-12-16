@@ -37,31 +37,44 @@ class CustomMission: MissionServer
 
 	void CustomMission()
 	{
+		wall_create();
+	}
 
+
+	void wall_create()
+	{
+		Object object;
 		int size = GetGame().GetWorld().GetWorldSize();
+		int count =	0;
+		int modelWidth = 6;
+		vector pos, ori;
 
-		vector pos = Vector(0,height,0);
-		vector ori;
-		for (pos[0] = 25; pos[0] <= GetGame().GetWorld().GetWorldSize(); pos[0] = pos[0] + 50)
+		for (pos[0] = 0; pos[0] <= size; pos[0] = pos[0] + modelWidth)
 		{
-			for (pos[2] = 25; pos[2] <= GetGame().GetWorld().GetWorldSize(); pos[2] = pos[2] + 50)
-			{
+			// Create static objects along the bottom edge
+			pos[2] = 0;
+			pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+			object = GetGame().CreateStaticObjectUsingP3D("DZ\\structures\\walls\\Wall_VilVar1_6.p3d", pos, vector.Zero, 1);
+			ori = object.GetOrientation();
+			// Create static objects along the top edge
+			pos[2] = size;
+			pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+			GetGame().CreateStaticObjectUsingP3D("DZ\\structures\\walls\\Wall_VilVar1_6.p3d", pos, vector.Zero, 1);
+		}
 
-				if ( pos[0] == size || pos[2] == 0 )
-				{
-					ori = GetGame().GetSurfaceOrientation(pos[0], pos[2]);
-					pos = GetGame().SurfaceRoadY( pos[0], pos[2]);
-					GetGame().CreateStaticObjectUsingP3D("D:\p drive\DZ\structures\walls\Wall_VilVar1_6.p3d", pos, ori, 1);
-				}
-				else if ( pos[2] == size || pos[0] == 0 )
-				{
-					ori = GetGame().GetSurfaceOrientation(pos[0], pos[2]) + "90 0 0";
-					pos = GetGame().SurfaceRoadY( pos[0], pos[2]);
-					GetGame().CreateStaticObjectUsingP3D("DZ\structures\walls\Wall_VilVar1_6.p3d", pos, ori, 1);
-				}
-			}
+		for (pos[2] = modelWidth; pos[2] < size; pos[2] = pos[2] + modelWidth)
+		{
+			// Create static objects along the left edge
+			pos[0] = 0;
+			pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+			GetGame().CreateStaticObjectUsingP3D("DZ\\structures\\walls\\Wall_VilVar1_6.p3d", pos, ori + "90 0 0", 1);
+			// Create static objects along the right edge
+			pos[0] = size;
+			pos[1] = GetGame().SurfaceY(pos[0], pos[2]);
+			GetGame().CreateStaticObjectUsingP3D("DZ\\structures\\walls\\Wall_VilVar1_6.p3d", pos, ori + "90 0 0", 1);
 		}
 	}
+
 
 
 	void SetRandomHealth(EntityAI itemEnt)
