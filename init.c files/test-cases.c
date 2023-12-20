@@ -25,17 +25,18 @@ void main() {
 }
 
 class CustomMission: MissionServer {
-      const int count = 10000000;
+      const int count = int.MAX;
           
   void CustomMission()
   {
-    //TestStringConCat();
+    TestStringConCat();
   }
 
   void TestStringConCat(Hive ce1 = null, Hive ce = null, string msg = "abcdefg", int interm = 0){
       for (int i = 1; i <= 4; i++) {
         testcases.testcase(i, count, 10);
       }
+      GetGame().AbortMission();
     }
 }
 Mission CreateCustomMission(string path) {
@@ -50,13 +51,13 @@ class testcases
     TFloatArray times = {};
     vector dist1 = "0 5 0", dist2 = "6 2 4";
     Matrix3 mat = new Matrix3();
-    int i, j;
+    int i, j, idx;
     float k;
     switch (casenumber)
     {
       case 1:
       {
-        times = {};
+        times = {GetGame().GetTickTime()};
         Print(GetGame().GetTickTime().ToString() + " - test :" + casenumber);
         for (j = 0; j < iterations; j++) {
           Print(GetGame().GetTickTime().ToString() + " - iteration :" + j);
@@ -68,15 +69,14 @@ class testcases
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        foreach(float a : times) k += a;
-        k = k - (times[0] * i);
-        k = k / i;
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
+        k = k / (i - 1);
         Print(" - average :" + k);
         break;
       }
       case 2:
       {
-        times = {};
+        times = {GetGame().GetTickTime()};
         Print(GetGame().GetTickTime().ToString() + " - test :" + casenumber);
         for (j = 0; j < iterations; j++) {
           Print(GetGame().GetTickTime().ToString() + " - iteration :" + j);
@@ -88,15 +88,14 @@ class testcases
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        foreach(float b : times) k += b;
-        k = k - (times[0] * i);
-        k = k / i;
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
+        k = k / (i - 1);
         Print(" - average :" + k);
         break;
       }
       case 3:
       {
-        times = {};
+        times = {GetGame().GetTickTime()};
         Print(GetGame().GetTickTime().ToString() + " - test :" + casenumber);
         for (j = 0; j < iterations; j++) {
           Print(GetGame().GetTickTime().ToString() + " - iteration :" + j);
@@ -108,15 +107,14 @@ class testcases
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        foreach(float c : times) k += c;
-        k = k - (times[0] * i);
-        k = k / i;
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
+        k = k / (i - 1);
         Print(" - average :" + k);
         break;
       }
       case 4:
       {
-        times = {};
+        times = {GetGame().GetTickTime()};
         Print(GetGame().GetTickTime().ToString() + " - test :" + casenumber);
         for (j = 0; j < iterations; j++) {
           Print(GetGame().GetTickTime().ToString() + " - iteration :" + j);
@@ -128,9 +126,8 @@ class testcases
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        foreach(float d : times) k += d;
-        k = k - (times[0] * i);
-        k = k / i;
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
+        k = k / (i - 1);
         Print(" - average :" + k);
         break;
       }
@@ -143,5 +140,23 @@ class testcases
     return s;
 }
 
+
+
+
+/*
+EntityAI FindAttachmentBySlotName(string name)
+{
+  EntityAI RailExists;
+  return RailExists;
+}
+
+bool CanDisplayAttachmentSlot(int slot_id) {
+    if (InventorySlots.GetSlotIdFromString("weaponOpticsCover") == slot_id) {
+        Print("test" + !Print("") + "!");
+        return FindAttachmentBySlotName("Rail") != NULL || !Print(this + " RailExists false");
+    }
+    return false;
+}
+*/
 
 }
