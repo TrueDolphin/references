@@ -64,13 +64,12 @@ class testcases
           for (i = 0; i < loops; i++) {
             float testa = findSqrt(vector.DistanceSq(dist1, dist2));
           }
-          times.Insert(GetGame().GetTickTime() - times[j - 1]);
+          times.Insert(GetGame().GetTickTime());
         }
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        for (idx = 1; idx < i; idx++) k += times[idx];
-        k -= times[0];
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
         k = k / (i - 1);
         Print(" - average :" + k);
         break;
@@ -85,13 +84,12 @@ class testcases
           for (i = 0; i < loops; i++) {
             float testb = Math.Sqrt(vector.DistanceSq(dist1, dist2));
           }
-          times.Insert(GetGame().GetTickTime() - times[j - 1]);
+          times.Insert(GetGame().GetTickTime());
         }
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        for (idx = 1; idx < i; idx++) k += times[idx];
-        k -= times[0];
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
         k = k / (i - 1);
         Print(" - average :" + k);
         break;
@@ -106,13 +104,12 @@ class testcases
           for (i = 0; i < loops; i++) {
             VectorHelper.Rotate(mat, dist2);
           }
-          times.Insert(GetGame().GetTickTime() - times[j - 1]);
+          times.Insert(GetGame().GetTickTime());
         }
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        for (idx = 1; idx < i; idx++) k += times[idx];
-        k -= times[0];
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
         k = k / (i - 1);
         Print(" - average :" + k);
         break;
@@ -127,13 +124,12 @@ class testcases
           for (i = 0; i < loops; i++) {
             VectorHelper2.Rotate(mat, dist2);
           }
-          times.Insert(GetGame().GetTickTime() - times[j - 1]);
+          times.Insert(GetGame().GetTickTime());
         }
         Print(GetGame().GetTickTime().ToString() + " - test end :" + casenumber);
         i = times.Count();
         k = 0;
-        for (idx = 1; idx < i; idx++) k += times[idx];
-        k -= times[0];
+        for (idx = 1; idx < i; idx++) k += times[idx] - times[idx - 1];
         k = k / (i - 1);
         Print(" - average :" + k);
         break;
