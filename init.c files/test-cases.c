@@ -25,7 +25,7 @@ void main() {
 }
 
 class CustomMission: MissionServer {
-      const int count = 2000000;
+      const int count = 10000000;
           
   void CustomMission()
   {
