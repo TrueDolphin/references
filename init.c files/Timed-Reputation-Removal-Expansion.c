@@ -38,38 +38,65 @@ class CustomMission: MissionServer
 		protected int REMOVEAMOUNT = 100; // rep to remove
 		protected int m_ReputationTimer = 1; // time in minutes
 		int m_CallInit = 0; // on first player connect, sets to 1.
+		int TotalReputation = 0;
 		
 		void RemoveRepFromPlayers()
 		{
+			if (m_Players.Count() < 1) return;
+
+			if (!RepChangeCheck()) return;
+			
 			int CurrentRep = 0;
-			array<Man> players = new array<Man>;
-			GetGame().GetPlayers(players);
-	
-		    foreach (Man player: players)
-		    {
+            foreach (Man player: m_Players)
+            {
+                PlayerBase Player = PlayerBase.Cast(player);
+                if (!Player || !Player.GetIdentity()) continue;
+
+                if (!Player.Expansion_GetReputation())
+                {
+                    Player.Expansion_SetReputation(0);
+                    CurrentRep = 0;
+                }
+                else
+                {
+                    CurrentRep = Player.Expansion_GetReputation();
+                }
+
+                Player.Expansion_SetReputation(Math.Clamp(CurrentRep - (REMOVEAMOUNT + 1), 0, int.MAX));
+                /*
+                can play around with:
+                Player.Expansion_GetReputation()
+                Player.Expansion_SetReputation(int)
+                Player.Expansion_AddReputation(int)
+                */
+            }
+		}
+	#endif
+
+	bool RepChangeCheck(){
+		int repcheck = 0;
+
+		foreach (Man player: m_Players)
+		{
 			PlayerBase Player = PlayerBase.Cast(player);
 			if (!Player || !Player.GetIdentity()) continue;
-		
+
 			if (!Player.Expansion_GetReputation())
 			{
-			    Player.Expansion_SetReputation(0);
-			    CurrentRep = 0;
+				Player.Expansion_SetReputation(0);
 			}
 			else
 			{
-			    CurrentRep = Player.Expansion_GetReputation();
+				repcheck += Player.Expansion_GetReputation();
 			}
-		
-			Player.Expansion_SetReputation(CurrentRep - (REMOVEAMOUNT + 1));
-			/*
-			can play around with:
-			Player.Expansion_GetReputation()
-			Player.Expansion_SetReputation(int)
-			Player.Expansion_AddReputation(int)
-			*/
-		    }
 		}
-	#endif
+
+		if (repcheck == TotalReputation) return false;
+		TotalReputation = repcheck;
+		return true;
+	}
+
+
 
 	override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
   	{
