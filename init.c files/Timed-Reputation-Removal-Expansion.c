@@ -44,30 +44,30 @@ class CustomMission: MissionServer
 			int CurrentRep = 0;
 			array<Man> players = new array<Man>;
 			GetGame().GetPlayers(players);
-
-            foreach (Man player: players)
-            {
-                PlayerBase Player = PlayerBase.Cast(player);
-                if (!Player || !Player.GetIdentity()) continue;
-
-                if (!Player.Expansion_GetReputation())
-                {
-                    Player.Expansion_SetReputation(0);
-                    CurrentRep = 0;
-                }
-                else
-                {
-                    CurrentRep = Player.Expansion_GetReputation();
-                }
-
-                Player.Expansion_SetReputation(CurrentRep - (REMOVEAMOUNT + 1));
-                /*
-                can play around with:
-                Player.Expansion_GetReputation()
-                Player.Expansion_SetReputation(int)
-                Player.Expansion_AddReputation(int)
-                */
-            }
+	
+		    foreach (Man player: players)
+		    {
+			PlayerBase Player = PlayerBase.Cast(player);
+			if (!Player || !Player.GetIdentity()) continue;
+		
+			if (!Player.Expansion_GetReputation())
+			{
+			    Player.Expansion_SetReputation(0);
+			    CurrentRep = 0;
+			}
+			else
+			{
+			    CurrentRep = Player.Expansion_GetReputation();
+			}
+		
+			Player.Expansion_SetReputation(CurrentRep - (REMOVEAMOUNT + 1));
+			/*
+			can play around with:
+			Player.Expansion_GetReputation()
+			Player.Expansion_SetReputation(int)
+			Player.Expansion_AddReputation(int)
+			*/
+		    }
 		}
 	#endif
 
