@@ -60,7 +60,7 @@ class CustomMission: MissionServer
 			    CurrentRep = Player.Expansion_GetReputation();
 			}
 		
-			Player.Expansion_SetReputation(CurrentRep - (REMOVEAMOUNT + 1));
+			Player.Expansion_SetReputation(Math.Clamp(CurrentRep - (REMOVEAMOUNT + 1), 0, int.MAX));
 			/*
 			can play around with:
 			Player.Expansion_GetReputation()
