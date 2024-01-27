@@ -1,0 +1,52 @@
+/**
+macca's script
+//This is the script to TP GMT to Trader
+https://discord.com/channels/523890175563137034/718183000969576540/1200651177050783905
+ */
+
+	override void Expansion_OnQuestCompletion(ExpansionQuest quest)
+    {
+     auto trace = EXTrace.Start(EXTrace.NAMALSKADVENTURE, this);   
+        PlayerBase player = quest.GetPlayer();
+        if (!player)
+            return;
+        
+        switch (quest.GetQuestConfig().GetID())
+        {
+            //! Teleports the player after tuning-in quest with ID 1001 Destination Trader
+            case 1001:
+            {
+                array<vector> teleportPositions1 = {"7403.7 15.2188 2268.64","2994.42 342.303 7473.1"};
+                vector ori1 = player.GetOrientation();
+                DayZPlayerSyncJunctures.ExpansionTeleport(player, teleportPositions1.GetRandomElement(), ori1);
+            }
+            break;            
+        
+		//! Teleports the player after tuning-in quest with ID 1002 Destination GMT
+            case 1002:
+            {
+                array<vector> teleportPositions2 = {"2989.55 342.098 7460.82", "2233.74 342.732 5926.39"};
+                vector ori2 = player.GetOrientation();
+                DayZPlayerSyncJunctures.ExpansionTeleport(player, teleportPositions2.GetRandomElement(), ori2);
+            }
+			break;
+			//! Teleports the player after tuning-in quest with ID 1003 Destination Altar
+            case 1003:
+            {
+                array<vector> teleportPositions3 = {"8093.82 458.862 9326.36", "8099.01 458.761 9329.34"};
+                vector ori3 = player.GetOrientation();
+                DayZPlayerSyncJunctures.ExpansionTeleport(player, teleportPositions3.GetRandomElement(), ori3);
+            }
+			break;
+			//! Teleports the player after tuning-in quest with ID 1004 Destination Klen
+            case 1004:
+            {
+                array<vector> teleportPositions4 = {"10969.2 232.79 11700.2", "10958.7 233.402 11690.6"};
+                vector ori4 = player.GetOrientation();
+                DayZPlayerSyncJunctures.ExpansionTeleport(player, teleportPositions4.GetRandomElement(), ori4);
+            }
+			break;
+		}
+
+        super.Expansion_OnQuestCompletion(quest);
+    }
