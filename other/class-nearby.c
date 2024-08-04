@@ -3,7 +3,7 @@
 
 modded class Classname
 {
-    static ref array < Classname > s_objectarray = {};
+    static ref array < Classname > s_objectarray;
 
     void Classname() {
     if (!s_objectarray) s_objectarray = {}; 
