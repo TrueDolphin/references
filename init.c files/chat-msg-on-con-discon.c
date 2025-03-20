@@ -1,44 +1,44 @@
+//missionserver
 
-  override void InvokeOnDisconnect(PlayerBase player)
+override void InvokeOnDisconnect(PlayerBase player)
 {
-    //message all on disconnect
     super.InvokeOnDisconnect(player);
-    array < Man > players = new array < Man > ;
-    GetGame().GetPlayers(players); 
-    for (int i = 0; i < players.Count(); ++i)
-    {
-      PlayerBase otherplayer = PlayerBase.Cast(players[i]);
-      if (!otherplayer) return;
-      if (!otherplayer.GetIdentity() || otherplayer.GetIdentity() == identity)
-      return;
-      string Name = player.GetIdentity().GetName();
-      sendPlayerMessage(otherplayer, Name + " has left.");
-    }
+    BroadcastToOtherPlayers(player.GetIdentity(), GetLeaveMessage(player));
 }
 
-  override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity) 
+override void InvokeOnConnect(PlayerBase player, PlayerIdentity identity)
 {
-    //message all on connect
     super.InvokeOnConnect(player, identity);
-    array < Man > players = new array < Man > ;
-    GetGame().GetPlayers(players); 
-    for (int i = 0; i < players.Count(); ++i)
+    BroadcastToOtherPlayers(identity, GetJoinMessage(player));
+}
+
+void BroadcastToOtherPlayers(PlayerIdentity excludeIdentity, string message)
+{
+    foreach (Man man : m_Players)
     {
-      PlayerBase otherplayer = PlayerBase.Cast(players[i]);
-      if (!otherplayer) return;
-      if (!otherplayer.GetIdentity() || otherplayer.GetIdentity() == identity)
-      return;
-      string Name = player.GetIdentity().GetName();
-      sendPlayerMessage(otherplayer, Name + " has joined.");
+        PlayerBase otherplayer = PlayerBase.Cast(man);
+        if (!otherplayer) continue;
+        if (otherplayer.GetIdentity() == excludeIdentity) continue;
+  
+        sendPlayerMessage(otherplayer, message);
     }
 }
 
-  protected void sendPlayerMessage(PlayerBase player, string message) 
+string GetLeaveMessage(PlayerBase player)
 {
-    if ((player) && (message != "")) 
+    return player.GetIdentity().GetName() + " has left.";
+}
+
+string GetJoinMessage(PlayerBase player)
+{
+    return player.GetIdentity().GetName() + " has joined.";
+}
+
+void sendPlayerMessage(PlayerBase player, string message)
+{
+    if (player && message != "")
     {
-      Param1 < string > Msgparam;
-      Msgparam = new Param1 < string > (message);
-      GetGame().RPCSingleParam(player, ERPCs.RPC_USER_ACTION_MESSAGE, Msgparam, true, player.GetIdentity());
-     }
-  }
+        Param1<string> Msgparam = new Param1<string>(message);
+        GetGame().RPCSingleParam(player, ERPCs.RPC_USER_ACTION_MESSAGE, Msgparam, true, player.GetIdentity());
+    }
+}
