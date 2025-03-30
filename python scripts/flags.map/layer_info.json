@@ -1,0 +1,152 @@
+{
+    "layers": [
+      {
+        "usage_flags": 3,
+        "value_flags": 10,
+        "color": 1716518750,
+        "visible": 0,
+        "name": "Military"
+      },
+      {
+        "usage_flags": 8,
+        "value_flags": 0,
+        "color": 4294770485,
+        "visible": 0,
+        "name": "FireFighter"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 1,
+        "color": 603950734,
+        "visible": 0,
+        "name": "Tier1"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 2,
+        "color": 4293826404,
+        "visible": 0,
+        "name": "Tier2"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 4,
+        "color": 1459588750,
+        "visible": 0,
+        "name": "Tier3"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 8,
+        "color": 1758986497,
+        "visible": 0,
+        "name": "Tier4"
+      },
+      {
+        "usage_flags": 256,
+        "value_flags": 0,
+        "color": 4283760554,
+        "visible": 0,
+        "name": "Village"
+      },
+      {
+        "usage_flags": 2,
+        "value_flags": 0,
+        "color": 4280365055,
+        "visible": 0,
+        "name": "Police"
+      },
+      {
+        "usage_flags": 512,
+        "value_flags": 0,
+        "color": 4285377068,
+        "visible": 0,
+        "name": "Hunting"
+      },
+      {
+        "usage_flags": 32,
+        "value_flags": 0,
+        "color": 4290422271,
+        "visible": 0,
+        "name": "Farm"
+      },
+      {
+        "usage_flags": 128,
+        "value_flags": 0,
+        "color": 4294487039,
+        "visible": 0,
+        "name": "Town"
+      },
+      {
+        "usage_flags": 2048,
+        "value_flags": 0,
+        "color": 4281991144,
+        "visible": 0,
+        "name": "School"
+      },
+      {
+        "usage_flags": 32768,
+        "value_flags": 0,
+        "color": 4284743427,
+        "visible": 0,
+        "name": "ContaminatedArea"
+      },
+      {
+        "usage_flags": 1024,
+        "value_flags": 0,
+        "color": 4293098495,
+        "visible": 0,
+        "name": "Office"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 16,
+        "color": 4293853052,
+        "visible": 0,
+        "name": "Unique"
+      },
+      {
+        "usage_flags": 16,
+        "value_flags": 0,
+        "color": 4294952846,
+        "visible": 0,
+        "name": "Industrial"
+      },
+      {
+        "usage_flags": 4,
+        "value_flags": 0,
+        "color": 4285836543,
+        "visible": 0,
+        "name": "Medic"
+      },
+      {
+        "usage_flags": 4096,
+        "value_flags": 0,
+        "color": 4294967295,
+        "visible": 0,
+        "name": "Prison"
+      },
+      {
+        "usage_flags": 64,
+        "value_flags": 0,
+        "color": 4293328640,
+        "visible": 0,
+        "name": "Coast"
+      },
+      {
+        "usage_flags": 8192,
+        "value_flags": 0,
+        "color": 4294967295,
+        "visible": 0,
+        "name": "LunaPark"
+      },
+      {
+        "usage_flags": 0,
+        "value_flags": 0,
+        "color": 4294967295,
+        "visible": 0,
+        "name": "SeasonalEvent"
+      }
+    ]
+  }
+  
