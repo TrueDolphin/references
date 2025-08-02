@@ -43,8 +43,8 @@ class Classname
         return false;
     }
 
-
-    static bool IsPointInOrientedBoxArea(vector point, float halfSize)
+    //default cube
+    static bool IsPointInOrientedBoxArea(vector point, float halfX = 1.0, float halfY = 1.0, float halfZ = 1.0)
     {
         foreach (Classname object : s_objectarray)
         {
@@ -56,12 +56,14 @@ class Classname
 
             vector local = (point - objPos).InvMultiply3(mat);
 
-            if (Math.AbsFloat(local[0]) <= halfSize && Math.AbsFloat(local[1]) <= halfSize && Math.AbsFloat(local[2]) <= halfSize)
+            if (Math.AbsFloat(local[0]) <= halfX && Math.AbsFloat(local[1]) <= halfY && Math.AbsFloat(local[2]) <= halfZ)
                 return true;
+            
         }
 
         return false;
     }
+
 
 
 
