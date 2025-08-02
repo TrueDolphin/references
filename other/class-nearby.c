@@ -1,7 +1,7 @@
 
-// rename Classname to your item classname
+// rename Classname to your item Classname
 
-modded class Classname
+class Classname
 {
     static ref array < Classname > s_objectarray;
 
@@ -44,30 +44,25 @@ modded class Classname
     }
 
 
-    static bool IsPointInBoxArea(vector point, float halfSize)
+    static bool IsPointInOrientedBoxArea(vector point, float halfSize)
     {
-        float minX, minY, minZ, maxX, maxY, maxZ;
-
         foreach (Classname object : s_objectarray)
         {
-            vector pos = object.GetPosition();
-            minX = pos[0] - halfSize;
-            maxX = pos[0] + halfSize;
-            minY = pos[1] - halfSize;
-            maxY = pos[1] + halfSize;
-            minZ = pos[2] - halfSize;
-            maxZ = pos[2] + halfSize;
+            vector objPos = object.GetPosition();
+            vector objOri = object.GetOrientation();
 
-            if (point[0] >= minX && point[0] <= maxX &&
-                point[1] >= minY && point[1] <= maxY &&
-                point[2] >= minZ && point[2] <= maxZ)
-            {
+            vector mat[3];
+            objOri.RotationMatrixFromAngles(mat);
+
+            vector local = (point - objPos).InvMultiply3(mat);
+
+            if (Math.AbsFloat(local[0]) <= halfSize && Math.AbsFloat(local[1]) <= halfSize && Math.AbsFloat(local[2]) <= halfSize)
                 return true;
-            }
         }
 
         return false;
     }
+
 
 
 };
