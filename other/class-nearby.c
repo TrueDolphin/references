@@ -42,6 +42,34 @@ modded class Classname
         }
         return false;
     }
+
+
+    static bool IsPointInBoxArea(vector point, float halfSize)
+    {
+        float minX, minY, minZ, maxX, maxY, maxZ;
+
+        foreach (Classname object : s_objectarray)
+        {
+            vector pos = object.GetPosition();
+            minX = pos[0] - halfSize;
+            maxX = pos[0] + halfSize;
+            minY = pos[1] - halfSize;
+            maxY = pos[1] + halfSize;
+            minZ = pos[2] - halfSize;
+            maxZ = pos[2] + halfSize;
+
+            if (point[0] >= minX && point[0] <= maxX &&
+                point[1] >= minY && point[1] <= maxY &&
+                point[2] >= minZ && point[2] <= maxZ)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 };
 
 
@@ -57,4 +85,12 @@ modded class Classname
     int count = Classname.GetVicinityCount(targetclass, 50);
     Print("there's " + count + " type of " + targetclass.GetType() + " within 50m");
     //Print(string.Format("Total %2 Found: %1 - within 50m", count, targetclass.GetType()));
+
+
+    vector myPoint = "456 12 789";
+    if (Classname.IsPointInBoxArea(myPoint, 1.5)) {
+        Print("Point is inside a 3D box around a Classname object.");
+    }
+
+
 */
