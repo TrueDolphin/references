@@ -7,7 +7,7 @@ set serverPort=2302
 set serverConfig=serverDZ.cfg
 set modlist="-mod=@passive;WS/@Community-Online-Tools;WS/@CF;WS/@Dabs Framework;WS/@DayZ-Expansion-Bundle;WS/@DayZ-Expansion-Licensed;WS/@DayZ-Expansion-Animations;"
 set servermods="-servermod="
-set "startargs=-config=%serverConfig% -profiles=Profiles -port=%serverPort% -cpuCount=%serverCPU% -adminlog -netlog -freezecheck -startNavmeshDataServer -profile"
+set "startargs=-config=%serverConfig% -profiles=Profiles -port=%serverPort% -cpuCount=%serverCPU% -adminlog -netlog -freezecheck"
 REM Set the hour to restart on ( example 3rd hour (3am/pm, 6am/pm, 9am/pm, 12am/pm))
 set interval_hours=3
 
