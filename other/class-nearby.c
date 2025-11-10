@@ -14,6 +14,20 @@ class Classname
         if (s_objectarray) s_objectarray.RemoveItem(this);
     }
 
+
+    void Force_Remove_all()
+    {
+        if (s_objectarray)
+        {
+            foreach(ItemBase object: s_objectarray) 
+            {
+                object.DeleteSafe();
+            }
+            s_objectarray = {}; 
+        }
+    }
+
+
     static array < Classname > ClassnameList() {
         if (!s_objectarray) s_objectarray = {};
         return s_objectarray;
