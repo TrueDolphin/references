@@ -1,341 +1,269 @@
-from PIL import Image
-import struct, json, os
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+DayZ Areaflags Tool - Extraction & Visualization
+TGA + PNG Extraction from areaflags.map with background map overlay
+"""
+import os
+import struct
+import shutil
+import xml.etree.ElementTree as ET
+from PIL import Image, ImageDraw
 
-def PrintTotal(current, total):
-    os.system('cls')
-    perc = int((current / total) * 100)
-    percfull = (current / total) * 100
-    filler = ""
-    filler += "+" * perc
-    filler += "-" * (10 - perc)
-    print(f"working: {filler}")
-    print(f"expanded: {percfull}")
-    print(f"current: {current}")
-    print(f"total: {total}")
+Image.MAX_IMAGE_PIXELS = None
 
-def load_layer_info_from_json(json_file):
-    try:
-        with open(json_file, 'r') as f:
-            data = json.load(f)
-            layers = data.get("layers", [])
-            print(f"Loaded {len(layers)} layers from JSON file.")
-            return layers
-    except FileNotFoundError:
-        print("JSON file not found.")
-        return []
-    except Exception as e:
-        print(f"Error loading JSON data: {e}")
-        return []
-
-def decompose_value(value, flag):
-    bitflags = [3]
-    bitflags += [2**i for i in range(1, 16)]
-    if flag > 0:
-        bitflags = [1, 2, 4, 8, 16]
+class AreaflagsExtractor:
+    """Areaflags extraction and overlay tool"""
     
-    bitflags = sorted(bitflags)
-    decomposition = []
-
-    for bitflag in reversed(bitflags):
-        while value >= bitflag:
-            decomposition.append(bitflag)
-            value -= bitflag
-
-    if value > 0:
-        decomposition.append(value)
-    
-    return decomposition
-
-def open_binary_file(file_path):
-    try:
-        with open(file_path, 'rb') as f:
-            binary_data = f.read()
-        return binary_data
-    except Exception as e:
-        print(f"Error reading file: {e}")
-        return None
-
-def parse_binary_file(filename):
-    binary_data = open_binary_file(filename)
-    layer_x = struct.unpack('<I', binary_data[:4])[0]
-    layer_z = int(struct.unpack('<I', binary_data[4:4 + 4])[0])
-    bg_image_x = int(struct.unpack('<I', binary_data[8:8 + 4])[0])
-    bg_image_z = int(struct.unpack('<I', binary_data[12:12 + 4])[0])
-    pixeltype = int(struct.unpack('<I', binary_data[16:16 + 4])[0])
-    return layer_x, layer_z, bg_image_x, bg_image_z, pixeltype
-
-def split_32bit(value):
-    if not (0 <= value < 2**32):
-        raise ValueError("Input value is not a 32-bit unsigned integer")
-    
-    lower_16_bits = value & 0xFFFF       # Extract the lower 16 bits
-    higher_16_bits = (value >> 16) & 0xFFFF  # Extract the higher 16 bits
-    return higher_16_bits, lower_16_bits
-
-def split_16bit(value):
-    if not (0 <= value < 2**16):
-        raise ValueError("Input value is not a 16-bit unsigned integer")
-    
-    lower_8_bits = value & 0xFF       # Extract the lower 8 bits
-    higher_8_bits = (value >> 8) & 0xFF  # Extract the higher 8 bits
-    return higher_8_bits, lower_8_bits
-
-def create_images_from_blocks(binary_data, layers, image_dimensions, offset, pixeltype, flatness):
-    if binary_data is None or not layers:
-        print("No data or layers to process.")
-        return None
-    try:
-        # RGBA format: 4 bytes per pixel / 2 bytes if 16
-        half_bit_pixel_size = image_dimensions * image_dimensions
-        bit_pixel_size = half_bit_pixel_size * 2
-        expected_image_size = half_bit_pixel_size * 4
-
-        print(f"expected 8bit   : {half_bit_pixel_size}")
-        print(f"expected 16bit  : {bit_pixel_size}")
-        print(f"expected vmap   : {expected_image_size}")
-        # Create entries for each layer in the layer_images dictionary
-        layer_images = {}
-        for i, layer_info in enumerate(layers):
-            if isinstance(layer_info, dict):
-                color = layer_info.get("color", 0)
-                usage_flags = layer_info.get("usage_flags", 0)
-                value_flags = layer_info.get("value_flags", 0)
-                pixels = int(0000)
-                rgba = {
-                    "alpha": int(((color >> 24) & 255) * flatness) & 255,
-                    "red": (color >> 16) & 255,
-                    "green": (color >> 8) & 255,
-                    "blue": (color & 255)
-                }
-                layer_images[i] = {"color": color, "usage_flags": usage_flags, "value_flags": value_flags, "img": bytearray(), "pixels": pixels, "rgba":rgba}
-        print(f"generated layers: {len(layer_images)}")
-        # Iterate through the binary data
-        currentoffset = 0
-        if len(binary_data) < bit_pixel_size:
-            print(f"mismatched data: {len(layer_images)} to expected pixels: {bit_pixel_size}")
-        print(f"usage flags blocks start point - {offset}")
-        for i in range(offset, bit_pixel_size + offset, 4):
-            pixel_block = binary_data[i:i+4]
-            currentoffset = i
-            #PrintTotal(i, len(binary_data))
-            largers, smallers = [], []
-            if pixeltype == 16:
-                larger, smaller = split_32bit(int.from_bytes(pixel_block, byteorder='big'))
-                largers.extend(decompose_value(larger, 0))
-                smallers.extend(decompose_value(smaller, 0))
-            else:
-                larger, smaller = split_32bit(int.from_bytes(pixel_block, byteorder='big'))
-                largers.extend(decompose_value(larger, 0))
-                smallers.extend(decompose_value(smaller, 0))
-
-            # Iterate through the sorted keys of the layers dictionary in descending order
-            for _, layer_info in layer_images.items():
-                usage_flags = layer_info["usage_flags"]
-                value_flags = layer_info["value_flags"]
-                image_data = layer_info["img"]
-                pixels = layer_info["pixels"]
-                rgba = layer_info["rgba"]
-                added = 0
-                if pixeltype == 16:
-                    for num in largers:
-                        if num & usage_flags:
-                            if added == 0:
-                                image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                                pixels += 1
-                                added += 1
-                    if value_flags == 0 or value_flags == 10:
-                        image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                    if added > 1:
-                        print(f"- {added} over 1")
-                    added = 0
-                    for num in smallers:
-                        if num & usage_flags:
-                            if added == 0:
-                                image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                                pixels += 1
-                                added += 1
-                    if added > 1:
-                        print(f"- {added} over 1")
-                    if value_flags == 0 or value_flags == 10:
-                        image_data += (bytes([0, 0, 0, 0])) * (1 - added)           
-                else:
-                    for num in largers:
-                        if num & usage_flags:
-                            if added == 0:
-                                image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                                pixels += 1
-                                added += 1
-                    if value_flags == 0 or value_flags == 10:
-                        image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                    if added > 1:
-                        print(f"- {added} over 1")
-                    added = 0
-                    for num in smallers:
-                        if num & usage_flags:
-                            if added == 0:
-                                image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                                pixels += 1
-                                added += 1
-                    if added > 1:
-                        print(f"- {added} over 1")
-                    if value_flags == 0 or value_flags == 10:
-                        image_data += (bytes([0, 0, 0, 0])) * (1 - added)  
-        currentoffset += 2
-        print(f"value flags blocks start point - {currentoffset}")
-        for i in range(currentoffset, currentoffset + half_bit_pixel_size, 4):
-            pixel_block = binary_data[i:i+4]
-            #PrintTotal(i, len(binary_data))
-            alta, altb, altc, altd = [], [], [], []
-            larger, smaller = split_32bit(int.from_bytes(pixel_block, byteorder='big'))
-            if larger != 0:
-                a, b = split_16bit(larger)
-                if a != 0:
-                    alta.extend(decompose_value(a, 1))
-                if b != 0:
-                    altb.extend(decompose_value(b, 1))
-            if smaller != 0:
-                c, d = split_16bit(smaller)
-                if c != 0:
-                    altc.extend(decompose_value(c, 1))
-                if d != 0:
-                    altd.extend(decompose_value(d, 1))
-
-            # Iterate through the sorted keys of the layers dictionary in descending order
-            for _, layer_info in layer_images.items():
-                usage_flags = layer_info["usage_flags"]
-                value_flags = layer_info["value_flags"]
-                image_data = layer_info["img"]
-                pixels = layer_info["pixels"]
-                rgba = layer_info["rgba"]
-                added = 0
-                for num in alta:
-                    if num & value_flags:
-                        if added == 0:
-                            image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                            pixels += 1
-                            added += 1
-                if usage_flags == 0:
-                    image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                if added > 1:
-                    print(f"- {added} over 1")
-                added = 0
-                for num in altb:
-                    if num & value_flags:
-                        if added == 0:
-                            image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                            pixels += 1
-                            added += 1
-                if usage_flags == 0:
-                    image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                if added > 1:
-                    print(f"- {added} over 1")
-                added = 0
-                for num in altc:
-                    if num & value_flags:
-                        if added == 0:
-                            image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                            pixels += 1
-                            added += 1
-                if usage_flags == 0:
-                    image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                if added > 1:
-                    print(f"- {added} over 1")
-                added = 0
-                for num in altd:
-                    if num & value_flags:
-                        if added == 0:
-                            image_data.extend([rgba["red"], rgba["green"], rgba["blue"], rgba["alpha"]])
-                            pixels += 1
-                            added += 1
-                if usage_flags == 0:
-                    image_data += (bytes([0, 0, 0, 0])) * (1 - added)
-                if added > 1:
-                    print(f"- {added} over 1")
-        print(f"remainder in file - {len(binary_data) - (currentoffset + half_bit_pixel_size)}")
-        if ((len(binary_data) - (currentoffset + half_bit_pixel_size)) * 0.25) == 0:
-            print(f"leftover blocks detected, parse not complete.")
-        # Create a transparent background image
-        background = Image.new("RGBA", (image_dimensions, image_dimensions), (0, 0, 0, 0))
-        sorted_layer_images = dict(sorted(layer_images.items(), key=lambda x: len(x[1]["img"]), reverse=True))
-        # Paste each color layer onto the background
-        correct_layers = len(layer_images)
-        for layer_info in sorted_layer_images.values():
-            color = layer_info["color"]
-            image_data = layer_info["img"]
-            if len(image_data) > expected_image_size:
-                correct_layers -= 1
-                print(f"color {color} found")
-                print(f"- {len(image_data)} allocated")
-                print(f"layer overfilled by {len(image_data) - expected_image_size}")
-            image = generate_image(image_data, image_dimensions, expected_image_size)
-            if image:
-                image.save(f"layer_{color}.png")
-                background.paste(image, (0, 0), image)
-        print(f"correct layers by datasize : {correct_layers}")
+    def __init__(self):
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.import_dir = os.path.join(self.script_dir, "import")
+        self.export_dir = os.path.join(self.script_dir, "export_visualisation")
         
-        return background
+        self.map_file = os.path.join(self.import_dir, "areaflags_map", "areaflags.map")
+        self.xml_file = os.path.join(self.import_dir, "areaflags_xml", "areaflags.xml")
+        self.bg_file = os.path.join(self.import_dir, "map_png", "map.png")
+        self.background_map = None
+        
+        self.layers = []
+        self.global_config = {}
+        
+        # Create necessary folders
+        self.setup_directories()
+    
+    def setup_directories(self):
+        """Creates necessary folders if they don't exist"""
+        # Delete the export folder if it exists to start from scratch
+        if os.path.exists(self.export_dir):
+            try:
+                shutil.rmtree(self.export_dir)
+            except Exception as e:
+                print(f"⚠️  Unable to clear export directory: {e}")
 
-    except Exception as e:
-        print(f"Error during processing: {e}")
-        return None
+        folders = [
+            os.path.join(self.import_dir, "areaflags_map"),
+            os.path.join(self.import_dir, "areaflags_xml"),
+            os.path.join(self.import_dir, "map_png"),
+            self.export_dir
+        ]
+        
+        for folder in folders:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+    
+    def load_xml(self):
+        """Loads the XML file and extracts names, flags, and colors"""
+        if not os.path.exists(self.xml_file):
+            print(f"❌ XML file not found: {self.xml_file}")
+            print(f"   Please place your areaflags.xml in: {os.path.dirname(self.xml_file)}")
+            return False
+        
+        try:
+            tree = ET.parse(self.xml_file)
+            root = tree.getroot()
+            
+            # Global config (map size)
+            global_tag = root.find('.//global')
+            if global_tag is not None:
+                layer_tag = global_tag.find('layer')
+                self.global_config['layer_size'] = int(layer_tag.get('size', '4096')) if layer_tag is not None else 4096
+            else:
+                self.global_config['layer_size'] = 4096
+            
+            # Layers
+            layers_tag = root.find('.//layers')
+            if layers_tag is None:
+                print("❌ No <layers> tag found in XML!")
+                return False
+            
+            self.layers = []
+            for layer in layers_tag.findall('layer'):
+                self.layers.append({
+                    'name': layer.get('name', 'unnamed'),
+                    'usage_flags': int(layer.get('usage_flags', 0)),
+                    'value_flags': int(layer.get('value_flags', 0)),
+                    'color': layer.get('color', 'FFFFFFFF') # Format expected: AARRGGBB or RRGGBB
+                })
+            
+            print(f"✅ {len(self.layers)} layers loaded from XML.")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error reading XML: {e}")
+            return False
 
-def generate_image(image_data, image_dimentions, expected_image_size):
-    try:
-        # Data minimum correction
-        if len(image_data) < expected_image_size:
-            print("image data size is smaller than the expected image size. Filling with transparent data.")
-            # Calculate the number of missing bytes
-            missing_bytes = expected_image_size - len(image_data)
-            image_data += bytes([0, 0, 0, 0]) * (int(missing_bytes / 4))
+    def parse_color(self, hex_color):
+        """Converts a hex color (AARRGGBB or RRGGBB) to (R, G, B, A) tuple"""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 8: # AARRGGBB
+            a = int(hex_color[0:2], 16)
+            r = int(hex_color[2:4], 16)
+            g = int(hex_color[4:6], 16)
+            b = int(hex_color[6:8], 16)
+            return (r, g, b, min(a, 180)) # Alpha capped for map visibility
+        elif len(hex_color) == 6: # RRGGBB
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[4:6], 16)
+            b = int(hex_color[6:8], 16)
+            return (r, g, b, 128) # Default alpha
+        else:
+            return (255, 255, 255, 128)
 
-        image_xy = (image_dimentions, image_dimentions)
+    def encode_rle_strict(self, pixels, width, height):
+        """Encode in continuous RLE (Bohemia Format)"""
+        encoded = bytearray()
+        total_pixels = width * height
+        x = 0
+        while x < total_pixels:
+            pixel_val = pixels[x]
+            run_length = 1
+            while (x + run_length < total_pixels and 
+                   pixels[x + run_length] == pixel_val and 
+                   run_length < 128):
+                run_length += 1
+            encoded.append(0x80 | (run_length - 1))
+            encoded.append(pixel_val)
+            x += run_length
+        return encoded
 
-        content_image = Image.frombytes('RGBA', image_xy, image_data)
-        flipped_image = content_image.transpose(Image.FLIP_TOP_BOTTOM)
-        return flipped_image
+    def process(self):
+        """Executes extraction and overlay"""
+        print("\n" + "="*80)
+        print("AREAFLAGS EXTRACTION & OVERLAY")
+        print("="*80)
 
-    except Exception as e:
-        print(f"Error generating image: {e}")
-        return None
+        # 1. Load background map from import
+        print("\n📍 Loading background map...")
+        if os.path.exists(self.bg_file):
+            try:
+                self.background_map = Image.open(self.bg_file).convert('RGBA')
+                print(f"✅ Background map loaded: {self.bg_file}")
+            except Exception as e:
+                print(f"⚠️  Error loading {self.bg_file}: {e}")
+                self.background_map = None
+        else:
+            print(f"ℹ️  No background found in {self.bg_file}. Using black background.")
+            self.background_map = None
+
+        # 2. Check areaflags.xml
+        if not os.path.exists(self.xml_file):
+            print(f"\n❌ Error: .xml file not found!")
+            print(f"   Please place your 'areaflags.xml' in:")
+            print(f"   {self.xml_file}")
+            return
+
+        # 3. Load XML
+        if not self.load_xml():
+            return
+
+        # 4. Check areaflags.map
+        if not os.path.exists(self.map_file):
+            print(f"\n❌ Error: .map file not found!")
+            print(f"   Please place your 'areaflags.map' in:")
+            print(f"   {self.map_file}")
+            return
+
+        layer_size = self.global_config['layer_size']
+        total_pixels = layer_size * layer_size
+
+        # Prepare final canvas
+        if self.background_map:
+            final_img = self.background_map.resize((layer_size, layer_size), Image.Resampling.LANCZOS)
+        else:
+            final_img = Image.new('RGBA', (layer_size, layer_size), (0, 0, 0, 255))
+
+        try:
+            with open(self.map_file, 'rb') as f:
+                f.read(20) # Header
+                usage_data = f.read(total_pixels * 4)
+                value_data = f.read(total_pixels)
+                
+                print(f"\n🚀 Processing {len(self.layers)} layers...")
+                
+                for i, layer in enumerate(self.layers):
+                    safe_name = "".join(c for c in layer['name'] if c.isalnum() or c in ('_', '-'))
+                    print(f"  [{i+1}/{len(self.layers)}] {layer['name']}... ", end='')
+                    
+                    pixels = bytearray(total_pixels)
+                    
+                    # Extracting layer pixels
+                    if layer['value_flags'] > 0:
+                        vflg = layer['value_flags']
+                        for p in range(total_pixels):
+                            if value_data[p] & vflg: pixels[p] = 255
+                    elif layer['usage_flags'] > 0:
+                        uflg = layer['usage_flags']
+                        for p in range(total_pixels):
+                            # Read uint32 little endian
+                            val = struct.unpack('<I', usage_data[p*4:p*4+4])[0]
+                            if val & uflg: pixels[p] = 255
+
+                    # Saving individual TGA + PNG
+                    # 1. PNG
+                    layer_img_l = Image.frombytes('L', (layer_size, layer_size), bytes(pixels))
+                    layer_img_l_flipped = layer_img_l.transpose(Image.FLIP_TOP_BOTTOM)
+                    layer_img_l_flipped.save(os.path.join(self.export_dir, f"{safe_name}.png"), format='PNG')
+
+                    # 2. TGA RLE Strict
+                    encoded = self.encode_rle_strict(pixels, layer_size, layer_size)
+                    tga_header = bytearray(18)
+                    tga_header[2] = 11      # RLE Grayscale
+                    tga_header[12:14] = struct.pack('<H', layer_size)
+                    tga_header[14:16] = struct.pack('<H', layer_size)
+                    tga_header[16] = 8      # 8 bit
+                    tga_header[17] = 0x20   # Top-Left Origin
+                    
+                    with open(os.path.join(self.export_dir, f"{safe_name}.tga"), 'wb') as tf:
+                        tf.write(tga_header)
+                        tf.write(encoded)
+
+                    # 3. Overlay on map
+                    color_rgba = self.parse_color(layer['color'])
+                    
+                    # Create colored mask
+                    # Flip pixels for overlay if background map is standard
+                    # DayZ Map is Top-Down, but PNGs are often displayed FLIP_TOP_BOTTOM
+                    # In memory .map is Top-Down.
+                    
+                    # Creating RGBA image for the layer
+                    layer_overlay = Image.new('RGBA', (layer_size, layer_size), (0,0,0,0))
+                    
+                    # Using layer_img_l (not flipped because .map is Top-Down and we want correct overlay)
+                    # If the background map is from a standard export, check if it's flipped or not.
+                    # Generally areaflags.map and exported satellite images are aligned.
+                    
+                    # Creating overlay: white pixels become color_rgba
+                    mask = layer_img_l # 255 for presence, 0 for absence
+                    
+                    # Fill an image with the chosen color
+                    colored_layer = Image.new('RGBA', (layer_size, layer_size), color_rgba)
+                    
+                    # Apply mask (layer pixels) on this color
+                    layer_overlay.paste(colored_layer, (0,0), mask)
+                    
+                    # Overlay on final image
+                    # Flip overlay because output PNG is FLIP_TOP_BOTTOM to be "readable"
+                    # but for overlay, it depends on the background_map.
+                    # Assume everything must be FLIP_TOP_BOTTOM for final result (classic map view)
+                    layer_overlay_flipped = layer_overlay.transpose(Image.FLIP_TOP_BOTTOM)
+                    final_img.alpha_composite(layer_overlay_flipped)
+                    
+                    print("OK")
+
+            # Saving final result
+            final_output = os.path.join(self.export_dir, "_CARTE_COMPLETE_AREAFLAGS.png")
+            final_img.save(final_output, format='PNG')
+            print(f"\n✅ Full visualization saved: {final_output}")
+            print(f"✅ Individual layers (TGA/PNG) saved in: {self.export_dir}")
+
+        except Exception as e:
+            print(f"\n❌ Fatal error: {e}")
+            import traceback
+            traceback.print_exc()
+
+def main():
+    extractor = AreaflagsExtractor()
+    extractor.process()
 
 if __name__ == "__main__":
-
-    filename = "flags.bin"
-    background_image_path = "sat.png"
-    
-    alpha_Divider = 1.5
-    offset = 21
-    json_file = "layer_info.json"
-
-    layers = load_layer_info_from_json(json_file)
-    layer_x, layer_z, bg_image_x, bg_image_z, pixeltype = parse_binary_file(filename)
-    #roughly known info
-    print(f"json filename   : {json_file}")
-    print(f"bin filename    : {filename}")
-    print(f"background      : {background_image_path}")
-    print(f"layer x         : {layer_x}")  # 5120
-    print(f"layer z         : {layer_z}")  # 5120
-    print(f"img x           : {bg_image_x}") # 10240
-    print(f"img z           : {bg_image_z}") # 10240
-    print(f"pixeltype       : {pixeltype}") # 16
-
-    binary_data = open_binary_file(filename)
-    print(f"data size       : {len(binary_data) * 2}")
-   
-    img = create_images_from_blocks(binary_data, layers, layer_x, offset, pixeltype, alpha_Divider)
-
-    if img:
-        try:
-            background = Image.open(background_image_path)
-            background.paste(img, (0, 0), img)
-            background = background.resize((bg_image_x, bg_image_z))
-            output_image_path = "output_image.png"
-            background.save(output_image_path)
-            print(f"Image saved as {output_image_path}")
-
-        except FileNotFoundError:
-            print("Background image not found.")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-    else:
-        print("Failed to draw layers.")
+    main()
